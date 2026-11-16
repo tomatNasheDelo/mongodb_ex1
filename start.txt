@@ -1,0 +1,123 @@
+Spring Boot Java + MongoDB: учебный демо-проект
+================================================
+
+Что изучаем
+-----------
+
+- Spring Boot 3 и Java 17.
+- Gradle Kotlin DSL: `build.gradle.kts`.
+- MongoDB через Spring Data MongoDB (`@Document`, `MongoRepository`).
+- REST CRUD API каталога товаров.
+- Unit-тестирование сервиса через Mockito без Spring и базы.
+- Интеграционное тестирование HTTP API и MongoDB на настоящем MongoDB контейнере через Testcontainers.
+- Docker Compose для локального MongoDB при ручном запуске приложения.
+
+Требования
+----------
+
+- JDK 17+
+- Gradle 8+ (или добавьте Gradle Wrapper через `gradle wrapper`).
+- Docker Engine/Desktop и Docker Compose plugin.
+- Для интеграционных тестов Docker должен быть запущен и доступен Testcontainers.
+
+Запуск локальной MongoDB и приложения
+-------------------------------------
+
+Из корня репозитория запусти MongoDB:
+
+```bash
+docker compose up -d mongodb
+docker compose ps
+```
+
+После того как контейнер запущен, открой второй терминал и запусти Spring Boot:
+
+```bash
+gradle bootRun
+```
+
+Приложение использует `mongodb://localhost:27017/demo_db` и слушает порт 8080. Открой API через curl или REST client.
+
+Остановить MongoDB, сохранив данные:
+
+```bash
+docker compose down
+```
+
+Удалить и контейнер, и данные volume:
+
+```bash
+docker compose down -v
+```
+
+REST API
+--------
+
+Создать товар:
+
+```bash
+curl -i -X POST http://localhost:8080/api/products \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Notebook","description":"Plain paper","price":4.25}'
+```
+
+Получить все товары:
+
+```bash
+curl http://localhost:8080/api/products
+```
+
+Поиск по части названия (без учёта регистра):
+
+```bash
+curl 'http://localhost:8080/api/products?name=mongo'
+```
+
+Получить один товар, обновить `PUT /api/products/{id}` или удалить `DELETE /api/products/{id}`. `id` возьми из ответа на создание.
+
+Проверка и тесты
+----------------
+
+Unit-тесты сервиса используют Mockito и не требуют Docker:
+
+```bash
+gradle test --tests 'ru.demo.mongodb.product.ProductServiceTest'
+```
+
+Интеграционные тесты запускают настоящий MongoDB в Docker через Testcontainers и проверяют Spring context, HTTP endpoints и работу репозитория:
+
+```bash
+gradle test --tests 'ru.demo.mongodb.product.ProductApiIntegrationTest'
+```
+
+Все тесты:
+
+```bash
+gradle test
+```
+
+Интеграционным тестам не нужно предварительно запускать `docker compose`: Testcontainers сам поднимает изолированный временный MongoDB контейнер и удаляет его по завершении. Docker должен быть доступен. `compose.yaml` предназначен для локального запуска приложения вне тестов.
+
+Подключение к другой БД
+-----------------------
+
+URI можно переопределить переменной окружения:
+
+```bash
+MONGODB_URI='mongodb://localhost:27017/demo_db' gradle bootRun
+```
+
+Что изучать дальше
+------------------
+
+1. Добавить pagination и сортировку для списка документов.
+2. Добавить отдельные response DTO и централизованную обработку ошибок валидации.
+3. Изучить MongoDB indexes и `@Indexed` на полях поиска.
+4. Добавить repository slice tests и проверки уникальности.
+5. Сравнить embedded Mongo подходы с Testcontainers (для интеграционных проверок предпочтительнее реальный MongoDB).
+6. Изучить replica set, транзакции MongoDB, миграции схемы и настройку production credentials.
+
+Заметка о тестах
+----------------
+
+Unit test здесь уместен для логики сервиса: он быстрый и проверяет решения класса изолированно. Интеграционный тест оправдан, потому что важна совместная работа сериализации HTTP, Spring MVC, Spring Data и настоящего MongoDB. Testcontainers не заменяет unit-тесты — эти виды тестов проверяют разные уровни.
