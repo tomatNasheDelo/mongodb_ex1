@@ -121,3 +121,21 @@ MONGODB_URI='mongodb://localhost:27017/demo_db' gradle bootRun
 ----------------
 
 Unit test здесь уместен для логики сервиса: он быстрый и проверяет решения класса изолированно. Интеграционный тест оправдан, потому что важна совместная работа сериализации HTTP, Spring MVC, Spring Data и настоящего MongoDB. Testcontainers не заменяет unit-тесты — эти виды тестов проверяют разные уровни.
+----Что там уже есть:
+
+    Spring Boot + Java
+    MongoDB
+    Gradle Kotlin DSL
+    Docker Compose для локального MongoDB
+    CRUD API для товаров
+    repository + service слой
+    unit tests с Mockito
+    интеграционные тесты через Testcontainers
+    start.txt в корне проекта
+
+Если хочешь, следующим сообщением я могу сразу сделать ещё один шаг:
+
+    добавить PostgreSQL вариант рядом с MongoDB
+    показать разницу между MongoDB и PostgreSQL в Spring Data
+    или расширить этот проект до “сервис заказа/корзина + индексы + aggregation pipeline”
+--
